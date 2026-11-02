@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('SOAP')}"></head>
+<body class="is-preload">
+
+<nav th:replace="~{fragments/layout :: menu('soap')}"></nav>
+
+<section class="main style1 page-content">
+	<div class="container">
+		<header class="major">
+			<h2>MNB árfolyamok (SOAP)</h2>
+		</header>
+
+		<form method="get" th:action="@{/soap}">
+			<div class="row gtr-uniform gtr-50">
+				<div class="col-4 col-12-small">
+					<select name="currency">
+						<option th:each="c : ${currencies}" th:value="${c}" th:text="${c}"
+								th:selected="${c == currency}"></option>
+					</select>
+				</div>
+				<div class="col-4 col-12-small">
+					<input type="date" name="start" th:value="${start}" required />
+				</div>
+				<div class="col-4 col-12-small">
+					<input type="date" name="end" th:value="${end}" required />
+				</div>
+				<div class="col-12">
+					<input type="submit" value="Lekérdezés" class="primary" />
+				</div>
+			</div>
+		</form>
+
+		<p th:if="${error}" th:text="${error}"></p>
+
+		<div th:if="${rates != null}">
+			<p th:if="${#lists.isEmpty(rates)}">Nincs adat a megadott időszakra.</p>
+			<div th:unless="${#lists.isEmpty(rates)}">
+				<canvas id="chart"></canvas>
+				<div class="table-wrapper">
+					<table>
+						<thead>
+							<tr><th>Dátum</th><th>Árfolyam (HUF)</th></tr>
+						</thead>
+						<tbody>
+							<tr th:each="r : ${rates}">
+								<td th:text="${r.date}"></td>
+								<td th:text="${r.value}"></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section th:replace="~{fragments/layout :: footer}"></section>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:if="${rates != null and !#lists.isEmpty(rates)}" th:inline="javascript">
+	const rates = /*[[${rates}]]*/ [];
+	new Chart(document.getElementById('chart'), {
+		type: 'line',
+		data: {
+			labels: rates.map(r => r.date),
+			datasets: [{
+				label: /*[[${currency} + ' / HUF']]*/ '',
+				data: rates.map(r => r.value),
+				borderColor: '#ffffff',
+				backgroundColor: '#ffffff'
+			}]
+		}
+	});
+</script>
+
+</body>
+</html>

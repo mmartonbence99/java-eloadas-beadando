@@ -12,11 +12,6 @@ public class MainController {
         return "index";
     }
 
-    @GetMapping("/soap")
-    public String soap(Model model) {
-        return page(model, "soap", "SOAP");
-    }
-
     @GetMapping("/forex-account")
     public String forexAccount(Model model) {
         return page(model, "forex-account", "Forex-account");
