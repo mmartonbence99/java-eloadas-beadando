@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${title})}"></head>
+<body class="is-preload">
+
+<nav th:replace="~{fragments/layout :: menu(${active})}"></nav>
+
+<section class="main style1 page-content">
+	<div class="container">
+		<header class="major">
+			<h2 th:text="${title}">Cím</h2>
+		</header>
+		<p>Ez az oldal még nincs kész.</p>
+	</div>
+</section>
+
+<section th:replace="~{fragments/layout :: footer}"></section>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Főoldal')}"></head>
+<body class="is-preload">
+
+<nav th:replace="~{fragments/layout :: menu('home')}"></nav>
+
+<section id="header">
+	<div class="inner">
+		<span class="icon solid major fa-chart-line"></span>
+		<h1>Java Spring Boot <strong>beadandó</strong></h1>
+		<p>MNB árfolyamok (SOAP) és Oanda Forex kereskedés<br />egy böngészős alkalmazásban.</p>
+		<ul class="actions special">
+			<li><a href="#one" class="button scrolly">Tovább</a></li>
+		</ul>
+	</div>
+</section>
+
+<section id="one" class="main style1">
+	<div class="container">
+		<div class="row gtr-150">
+			<div class="col-6 col-12-medium">
+				<header class="major">
+					<h2>Az alkalmazásról</h2>
+				</header>
+				<p>Ide jön az alkalmazás bemutatása.</p>
+			</div>
+			<div class="col-6 col-12-medium imp-medium">
+				<span class="image fit"><img th:src="@{/images/pic01.jpg}" alt="" /></span>
+			</div>
+		</div>
+	</div>
+</section>
+
+<section th:replace="~{fragments/layout :: footer}"></section>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

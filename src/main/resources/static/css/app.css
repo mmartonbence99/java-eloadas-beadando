@@ -1,0 +1,40 @@
+#topnav {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 1000;
+	background: rgba(30, 30, 40, 0.92);
+	text-align: center;
+	padding: 0.5em 1em;
+}
+
+#topnav a {
+	display: inline-block;
+	color: #fff;
+	text-decoration: none;
+	border: 0;
+	padding: 0.4em 0.8em;
+	font-size: 0.9em;
+}
+
+#topnav a:hover,
+#topnav a.active {
+	background: rgba(255, 255, 255, 0.2);
+}
+
+body {
+	padding-top: 3em;
+}
+
+#footer .authors {
+	margin-bottom: 1em;
+}
+
+.page-content {
+	min-height: 60vh;
+}
+
+.page-content table {
+	width: 100%;
+}
