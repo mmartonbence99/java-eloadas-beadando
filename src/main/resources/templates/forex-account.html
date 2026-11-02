@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Forex-account')}"></head>
+<body class="is-preload">
+
+<nav th:replace="~{fragments/layout :: menu('forex-account')}"></nav>
+
+<section class="main style1 page-content">
+	<div class="container">
+		<header class="major">
+			<h2>Számlainformációk</h2>
+		</header>
+
+		<p th:if="${error}" th:text="${error}"></p>
+
+		<div class="table-wrapper" th:if="${account != null}">
+			<table>
+				<thead>
+					<tr><th>Név</th><th>Érték</th></tr>
+				</thead>
+				<tbody>
+					<tr th:each="e : ${account}" th:unless="${e.value instanceof T(java.util.Collection)}">
+						<td th:text="${e.key}"></td>
+						<td th:text="${e.value}"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</section>
+
+<section th:replace="~{fragments/layout :: footer}"></section>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

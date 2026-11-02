@@ -12,11 +12,6 @@ public class MainController {
         return "index";
     }
 
-    @GetMapping("/forex-account")
-    public String forexAccount(Model model) {
-        return page(model, "forex-account", "Forex-account");
-    }
-
     @GetMapping("/forex-aktar")
     public String forexAktar(Model model) {
         return page(model, "forex-aktar", "Forex-AktÁr");
