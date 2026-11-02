@@ -4,6 +4,7 @@ import org.example.ea_beadando.service.OandaService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class ForexController {
@@ -24,5 +25,21 @@ public class ForexController {
             model.addAttribute("error", e.getMessage());
         }
         return "forex-account";
+    }
+
+    @GetMapping("/forex-aktar")
+    public String aktar(@RequestParam(required = false) String instrument, Model model) {
+        model.addAttribute("active", "forex-aktar");
+        model.addAttribute("title", "Forex-AktÁr");
+        try {
+            model.addAttribute("instruments", oanda.getInstruments());
+            if (instrument != null) {
+                model.addAttribute("price", oanda.getPrice(instrument));
+            }
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+        }
+        model.addAttribute("instrument", instrument);
+        return "forex-aktar";
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -32,5 +33,27 @@ public class OandaService {
         @SuppressWarnings("unchecked")
         Map<String, Object> account = (Map<String, Object>) response.get("account");
         return account;
+    }
+
+    public List<String> getInstruments() {
+        Map<String, Object> response = client.get()
+                .uri("/v3/accounts/{id}/instruments", accountId)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                });
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> list = (List<Map<String, Object>>) response.get("instruments");
+        return list.stream().map(i -> (String) i.get("name")).sorted().toList();
+    }
+
+    public Map<String, Object> getPrice(String instrument) {
+        Map<String, Object> response = client.get()
+                .uri("/v3/accounts/{id}/pricing?instruments={i}", accountId, instrument)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {
+                });
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> prices = (List<Map<String, Object>>) response.get("prices");
+        return prices.get(0);
     }
 }
