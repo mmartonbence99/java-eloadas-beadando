@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Forex-Nyit')}"></head>
+<body class="is-preload">
+
+<nav th:replace="~{fragments/layout :: menu('forex-nyit')}"></nav>
+
+<section class="main style1 page-content">
+	<div class="container">
+		<header class="major">
+			<h2>Pozíció nyitása</h2>
+		</header>
+
+		<form method="post" th:action="@{/forex-nyit}">
+			<div class="row gtr-uniform gtr-50">
+				<div class="col-5 col-12-small">
+					<select name="instrument">
+						<option th:each="i : ${instruments}" th:value="${i}" th:text="${i}"></option>
+					</select>
+				</div>
+				<div class="col-4 col-12-small">
+					<input type="number" name="units" placeholder="Mennyiség (+ Long, - Short)" required />
+				</div>
+				<div class="col-3 col-12-small">
+					<input type="submit" value="Nyitás" class="primary" />
+				</div>
+			</div>
+		</form>
+
+		<p th:if="${message}" th:text="${message}"></p>
+		<p th:if="${error}" th:text="${error}"></p>
+	</div>
+</section>
+
+<section th:replace="~{fragments/layout :: footer}"></section>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

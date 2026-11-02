@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Forex-Zár')}"></head>
+<body class="is-preload">
+
+<nav th:replace="~{fragments/layout :: menu('forex-zar')}"></nav>
+
+<section class="main style1 page-content">
+	<div class="container">
+		<header class="major">
+			<h2>Pozíció zárása</h2>
+		</header>
+
+		<form method="post" th:action="@{/forex-zar}">
+			<div class="row gtr-uniform gtr-50">
+				<div class="col-8 col-12-small">
+					<input type="number" name="tradeId" placeholder="Trade ID" min="1" required />
+				</div>
+				<div class="col-4 col-12-small">
+					<input type="submit" value="Zárás" class="primary" />
+				</div>
+			</div>
+		</form>
+
+		<p th:if="${message}" th:text="${message}"></p>
+		<p th:if="${error}" th:text="${error}"></p>
+	</div>
+</section>
+
+<section th:replace="~{fragments/layout :: footer}"></section>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

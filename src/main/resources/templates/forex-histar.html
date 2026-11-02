@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Forex-HistÁr')}"></head>
+<body class="is-preload">
+
+<nav th:replace="~{fragments/layout :: menu('forex-histar')}"></nav>
+
+<section class="main style1 page-content">
+	<div class="container">
+		<header class="major">
+			<h2>Historikus árak</h2>
+		</header>
+
+		<form method="get" th:action="@{/forex-histar}">
+			<div class="row gtr-uniform gtr-50">
+				<div class="col-5 col-12-small">
+					<select name="instrument">
+						<option th:each="i : ${instruments}" th:value="${i}" th:text="${i}"
+								th:selected="${i == instrument}"></option>
+					</select>
+				</div>
+				<div class="col-4 col-12-small">
+					<select name="granularity">
+						<option th:each="g : ${granularities}" th:value="${g}" th:text="${g}"
+								th:selected="${g == granularity}"></option>
+					</select>
+				</div>
+				<div class="col-3 col-12-small">
+					<input type="submit" value="Lekérdezés" class="primary" />
+				</div>
+			</div>
+		</form>
+
+		<p th:if="${error}" th:text="${error}"></p>
+
+		<div class="table-wrapper" th:if="${candles != null}">
+			<table>
+				<thead>
+					<tr><th>Idő</th><th>Open</th><th>High</th><th>Low</th><th>Close</th></tr>
+				</thead>
+				<tbody>
+					<tr th:each="c : ${candles}">
+						<td th:text="${c.time}"></td>
+						<td th:text="${c.mid.o}"></td>
+						<td th:text="${c.mid.h}"></td>
+						<td th:text="${c.mid.l}"></td>
+						<td th:text="${c.mid.c}"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</section>
+
+<section th:replace="~{fragments/layout :: footer}"></section>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>
