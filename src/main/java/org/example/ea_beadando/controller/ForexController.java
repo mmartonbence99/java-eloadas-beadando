@@ -83,7 +83,7 @@ public class ForexController {
     public String nyitPost(@RequestParam String instrument, @RequestParam int units, Model model) {
         try {
             Map<String, Object> result = oanda.openTrade(instrument, units);
-            model.addAttribute("message", "Sikeres megbízás: " + result.get("orderFillTransaction"));
+            handleResult(result, "Sikeres megbízás", model);
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
         }
@@ -113,10 +113,24 @@ public class ForexController {
     public String zarPost(@RequestParam String tradeId, Model model) {
         try {
             Map<String, Object> result = oanda.closeTrade(tradeId);
-            model.addAttribute("message", "Sikeres zárás: " + result.get("orderFillTransaction"));
+            handleResult(result, "Sikeres zárás", model);
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
         }
         return zar(model);
+    }
+
+
+    private void handleResult(Map<String, Object> result, String successText, Model model) {
+        if (result != null && result.get("orderFillTransaction") != null) {
+            model.addAttribute("message", successText + ": " + result.get("orderFillTransaction"));
+            return;
+        }
+        Object cancel = result == null ? null : result.get("orderCancelTransaction");
+        if (cancel instanceof Map<?, ?> c) {
+            model.addAttribute("error", "A megbízás nem teljesült. Ok: " + c.get("reason"));
+        } else {
+            model.addAttribute("error", "A megbízás nem teljesült.");
+        }
     }
 }
