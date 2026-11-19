@@ -12,6 +12,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 public class MnbService {
@@ -19,8 +20,18 @@ public class MnbService {
     public record Rate(String date, double value) {
     }
 
+    private final Supplier<MNBArfolyamServiceSoap> portSupplier;
+
+    public MnbService() {
+        this(() -> new MNBArfolyamServiceSoapImpl().getCustomBindingMNBArfolyamServiceSoap());
+    }
+
+    MnbService(Supplier<MNBArfolyamServiceSoap> portSupplier) {
+        this.portSupplier = portSupplier;
+    }
+
     private MNBArfolyamServiceSoap port() {
-        return new MNBArfolyamServiceSoapImpl().getCustomBindingMNBArfolyamServiceSoap();
+        return portSupplier.get();
     }
 
     public List<String> getCurrencies() throws Exception {
@@ -40,7 +51,11 @@ public class MnbService {
             Element day = (Element) days.item(i);
             Element rate = (Element) day.getElementsByTagName("Rate").item(0);
             if (rate != null) {
-                double value = Double.parseDouble(rate.getTextContent().replace(',', '.'));
+                int unit = Integer.parseInt(rate.getAttribute("unit"));
+                if (unit <= 0) {
+                    throw new IllegalArgumentException("Érvénytelen devizaegység az MNB válaszában.");
+                }
+                double value = Double.parseDouble(rate.getTextContent().replace(',', '.')) / unit;
                 result.add(new Rate(day.getAttribute("date"), value));
             }
         }
