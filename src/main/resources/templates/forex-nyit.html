@@ -14,12 +14,13 @@
 		<form method="post" th:action="@{/forex-nyit}">
 			<div class="row gtr-uniform gtr-50">
 				<div class="col-5 col-12-small">
-					<select name="instrument">
-						<option th:each="i : ${instruments}" th:value="${i}" th:text="${i}"></option>
+					<select name="instrument" required>
+						<option th:each="i : ${instruments}" th:value="${i}" th:text="${i}"
+								th:selected="${i == instrument}"></option>
 					</select>
 				</div>
 				<div class="col-4 col-12-small">
-					<input type="number" name="units" placeholder="Mennyiség (+ Long, - Short)" required />
+					<input type="number" name="units" th:value="${units}" placeholder="Mennyiség (+ Long, - Short)" required />
 				</div>
 				<div class="col-3 col-12-small">
 					<input type="submit" value="Nyitás" class="primary" />

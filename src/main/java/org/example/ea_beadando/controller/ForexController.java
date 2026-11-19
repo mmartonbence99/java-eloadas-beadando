@@ -69,8 +69,7 @@ public class ForexController {
 
     @GetMapping("/forex-nyit")
     public String nyit(Model model) {
-        model.addAttribute("active", "forex-nyit");
-        model.addAttribute("title", "Forex-Nyit");
+        prepareNyit(model);
         try {
             model.addAttribute("instruments", oanda.getInstruments());
         } catch (Exception e) {
@@ -80,14 +79,37 @@ public class ForexController {
     }
 
     @PostMapping("/forex-nyit")
-    public String nyitPost(@RequestParam String instrument, @RequestParam int units, Model model) {
+    public String nyitPost(@RequestParam(defaultValue = "") String instrument,
+                           @RequestParam(defaultValue = "") String units, Model model) {
+        prepareNyit(model);
+        model.addAttribute("instrument", instrument);
+        model.addAttribute("units", units);
         try {
-            Map<String, Object> result = oanda.openTrade(instrument, units);
+            List<String> instruments = oanda.getInstruments();
+            model.addAttribute("instruments", instruments);
+            if (!instruments.contains(instrument)) {
+                throw new IllegalArgumentException("Válasszon érvényes instrumentumot.");
+            }
+            int amount;
+            try {
+                amount = Integer.parseInt(units);
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Adjon meg érvényes egész mennyiséget.", e);
+            }
+            if (amount == 0) {
+                throw new IllegalArgumentException("A mennyiség nem lehet nulla.");
+            }
+            Map<String, Object> result = oanda.openTrade(instrument, amount);
             handleResult(result, "Sikeres megbízás", model);
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
         }
-        return nyit(model);
+        return "forex-nyit";
+    }
+
+    private void prepareNyit(Model model) {
+        model.addAttribute("active", "forex-nyit");
+        model.addAttribute("title", "Forex-Nyit");
     }
 
     @GetMapping("/forex-poz")
@@ -110,8 +132,12 @@ public class ForexController {
     }
 
     @PostMapping("/forex-zar")
-    public String zarPost(@RequestParam String tradeId, Model model) {
+    public String zarPost(@RequestParam(defaultValue = "") String tradeId, Model model) {
+        model.addAttribute("tradeId", tradeId);
         try {
+            if (!tradeId.matches("[0-9]+") || tradeId.matches("0+")) {
+                throw new IllegalArgumentException("Adjon meg pozitív egész trade azonosítót.");
+            }
             Map<String, Object> result = oanda.closeTrade(tradeId);
             handleResult(result, "Sikeres zárás", model);
         } catch (Exception e) {

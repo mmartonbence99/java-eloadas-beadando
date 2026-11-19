@@ -14,7 +14,7 @@
 		<form method="post" th:action="@{/forex-zar}">
 			<div class="row gtr-uniform gtr-50">
 				<div class="col-8 col-12-small">
-					<input type="number" name="tradeId" placeholder="Trade ID" min="1" required />
+					<input type="number" name="tradeId" th:value="${tradeId}" placeholder="Trade ID" min="1" required />
 				</div>
 				<div class="col-4 col-12-small">
 					<input type="submit" value="Zárás" class="primary" />
