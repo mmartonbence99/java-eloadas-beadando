@@ -26,7 +26,7 @@ public class MnbService {
         this(() -> new MNBArfolyamServiceSoapImpl().getCustomBindingMNBArfolyamServiceSoap());
     }
 
-    public MnbService(Supplier<MNBArfolyamServiceSoap> portSupplier) {
+    MnbService(Supplier<MNBArfolyamServiceSoap> portSupplier) {
         this.portSupplier = portSupplier;
     }
 
@@ -51,7 +51,11 @@ public class MnbService {
             Element day = (Element) days.item(i);
             Element rate = (Element) day.getElementsByTagName("Rate").item(0);
             if (rate != null) {
-                double value = Double.parseDouble(rate.getTextContent().replace(',', '.'));
+                int unit = Integer.parseInt(rate.getAttribute("unit"));
+                if (unit <= 0) {
+                    throw new IllegalArgumentException("Érvénytelen devizaegység az MNB válaszában.");
+                }
+                double value = Double.parseDouble(rate.getTextContent().replace(',', '.')) / unit;
                 result.add(new Rate(day.getAttribute("date"), value));
             }
         }

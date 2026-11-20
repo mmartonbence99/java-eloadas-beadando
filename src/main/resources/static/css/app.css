@@ -7,6 +7,8 @@
 	background: rgba(30, 30, 40, 0.92);
 	text-align: center;
 	padding: 0.5em 1em;
+	overflow-x: auto;
+	white-space: nowrap;
 }
 
 #topnav a {

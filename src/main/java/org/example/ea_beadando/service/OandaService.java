@@ -13,19 +13,28 @@ public class OandaService {
 
     private final RestClient client;
     private final String accountId;
+    private final String token;
 
     public OandaService(@Value("${oanda.url}") String url,
                         @Value("${oanda.token}") String token,
                         @Value("${oanda.account-id}") String accountId) {
         this.accountId = accountId;
+        this.token = token;
         this.client = RestClient.builder()
                 .baseUrl(url)
                 .defaultHeader("Authorization", "Bearer " + token)
                 .build();
     }
 
+    private RestClient client() {
+        if (token.isBlank() || accountId.isBlank()) {
+            throw new IllegalStateException("Az OANDA_TOKEN és az OANDA_ACCOUNT_ID környezeti változókat be kell állítani.");
+        }
+        return client;
+    }
+
     public Map<String, Object> getAccount() {
-        Map<String, Object> response = client.get()
+        Map<String, Object> response = client().get()
                 .uri("/v3/accounts/{id}/summary", accountId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
@@ -36,7 +45,7 @@ public class OandaService {
     }
 
     public List<String> getInstruments() {
-        Map<String, Object> response = client.get()
+        Map<String, Object> response = client().get()
                 .uri("/v3/accounts/{id}/instruments", accountId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
@@ -47,7 +56,7 @@ public class OandaService {
     }
 
     public Map<String, Object> getPrice(String instrument) {
-        Map<String, Object> response = client.get()
+        Map<String, Object> response = client().get()
                 .uri("/v3/accounts/{id}/pricing?instruments={i}", accountId, instrument)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
@@ -58,7 +67,7 @@ public class OandaService {
     }
 
     public List<Map<String, Object>> getCandles(String instrument, String granularity) {
-        Map<String, Object> response = client.get()
+        Map<String, Object> response = client().get()
                 .uri("/v3/instruments/{i}/candles?count=10&granularity={g}&price=M", instrument, granularity)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
@@ -75,7 +84,7 @@ public class OandaService {
                 "units", String.valueOf(units),
                 "timeInForce", "FOK",
                 "positionFill", "DEFAULT"));
-        return client.post()
+        return client().post()
                 .uri("/v3/accounts/{id}/orders", accountId)
                 .body(order)
                 .retrieve()
@@ -84,7 +93,7 @@ public class OandaService {
     }
 
     public List<Map<String, Object>> getOpenTrades() {
-        Map<String, Object> response = client.get()
+        Map<String, Object> response = client().get()
                 .uri("/v3/accounts/{id}/openTrades", accountId)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
@@ -95,7 +104,7 @@ public class OandaService {
     }
 
     public Map<String, Object> closeTrade(String tradeId) {
-        return client.put()
+        return client().put()
                 .uri("/v3/accounts/{id}/trades/{t}/close", accountId, tradeId)
                 .body(Map.of("units", "ALL"))
                 .retrieve()
