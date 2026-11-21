@@ -12,12 +12,12 @@ import java.util.Map;
 public class OandaService {
 
     private final RestClient client;
-    private final String accountId;
     private final String token;
+    private volatile String accountId;
 
     public OandaService(@Value("${oanda.url}") String url,
                         @Value("${oanda.token}") String token,
-                        @Value("${oanda.account-id}") String accountId) {
+                        @Value("${oanda.account-id:}") String accountId) {
         this.accountId = accountId;
         this.token = token;
         this.client = RestClient.builder()
@@ -27,15 +27,33 @@ public class OandaService {
     }
 
     private RestClient client() {
-        if (token.isBlank() || accountId.isBlank()) {
+        if (token.isBlank()) {
             throw new IllegalStateException("Az OANDA_TOKEN és az OANDA_ACCOUNT_ID környezeti változókat be kell állítani.");
         }
         return client;
     }
 
+    // Ha nincs megadva számlaazonosító, a tokenhez tartozó számlát az OANDA-tól kérdezzük le (GET /v3/accounts).
+    private String accountId() {
+        if (accountId == null || accountId.isBlank()) {
+            Map<String, Object> response = client().get()
+                    .uri("/v3/accounts")
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<>() {
+                    });
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> accounts = (List<Map<String, Object>>) response.get("accounts");
+            if (accounts == null || accounts.isEmpty()) {
+                throw new IllegalStateException("A tokenhez nem tartozik OANDA számla.");
+            }
+            accountId = (String) accounts.get(0).get("id");
+        }
+        return accountId;
+    }
+
     public Map<String, Object> getAccount() {
         Map<String, Object> response = client().get()
-                .uri("/v3/accounts/{id}/summary", accountId)
+                .uri("/v3/accounts/{id}/summary", accountId())
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
@@ -46,7 +64,7 @@ public class OandaService {
 
     public List<String> getInstruments() {
         Map<String, Object> response = client().get()
-                .uri("/v3/accounts/{id}/instruments", accountId)
+                .uri("/v3/accounts/{id}/instruments", accountId())
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
@@ -57,7 +75,7 @@ public class OandaService {
 
     public Map<String, Object> getPrice(String instrument) {
         Map<String, Object> response = client().get()
-                .uri("/v3/accounts/{id}/pricing?instruments={i}", accountId, instrument)
+                .uri("/v3/accounts/{id}/pricing?instruments={i}", accountId(), instrument)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
@@ -85,7 +103,7 @@ public class OandaService {
                 "timeInForce", "FOK",
                 "positionFill", "DEFAULT"));
         return client().post()
-                .uri("/v3/accounts/{id}/orders", accountId)
+                .uri("/v3/accounts/{id}/orders", accountId())
                 .body(order)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
@@ -94,7 +112,7 @@ public class OandaService {
 
     public List<Map<String, Object>> getOpenTrades() {
         Map<String, Object> response = client().get()
-                .uri("/v3/accounts/{id}/openTrades", accountId)
+                .uri("/v3/accounts/{id}/openTrades", accountId())
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
@@ -105,7 +123,7 @@ public class OandaService {
 
     public Map<String, Object> closeTrade(String tradeId) {
         return client().put()
-                .uri("/v3/accounts/{id}/trades/{t}/close", accountId, tradeId)
+                .uri("/v3/accounts/{id}/trades/{t}/close", accountId(), tradeId)
                 .body(Map.of("units", "ALL"))
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
