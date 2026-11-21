@@ -15,8 +15,9 @@ class OandaServiceTests {
     }
 
     @Test
-    void rejectsMissingAccountForTradeOperations() {
-        OandaService service = new OandaService("https://api-fxpractice.oanda.com", "token", " ");
+    void rejectsMissingTokenForTradeOperations() {
+        // Token nélkül a kereskedési műveletek hálózati hívás nélkül, azonnal hibát dobnak.
+        OandaService service = new OandaService("https://api-fxpractice.oanda.com", "", " ");
         assertThrows(IllegalStateException.class, () -> service.openTrade("EUR_USD", 1));
         assertThrows(IllegalStateException.class, () -> service.closeTrade("1"));
     }
