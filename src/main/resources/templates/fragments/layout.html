@@ -13,6 +13,7 @@
 <nav id="topnav" th:fragment="menu(active)">
 	<a th:href="@{/}" th:classappend="${active == 'home'} ? 'active'">Főoldal</a>
 	<a th:href="@{/soap}" th:classappend="${active == 'soap'} ? 'active'">SOAP</a>
+	<a th:href="@{/oanda-beallitasok}" th:classappend="${active == 'oanda-beallitasok'} ? 'active'">Oanda-beállítások</a>
 	<a th:href="@{/forex-account}" th:classappend="${active == 'forex-account'} ? 'active'">Forex-account</a>
 	<a th:href="@{/forex-aktar}" th:classappend="${active == 'forex-aktar'} ? 'active'">Forex-AktÁr</a>
 	<a th:href="@{/forex-histar}" th:classappend="${active == 'forex-histar'} ? 'active'">Forex-HistÁr</a>

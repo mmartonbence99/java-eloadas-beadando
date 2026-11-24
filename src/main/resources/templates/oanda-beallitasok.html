@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Oanda-beállítások')}"></head>
+<body class="is-preload">
+<nav th:replace="~{fragments/layout :: menu('oanda-beallitasok')}"></nav>
+
+<section class="main style1 page-content">
+	<div class="container">
+		<header class="major"><h2>Oanda-beállítások</h2></header>
+		<p>Adja meg az Oanda v20 practice API-tokenjét és szükség esetén a számlaazonosítót.
+			Az Exchange Rates API kulcsa nem használható.</p>
+		<p>Az adatok csak a program memóriájában maradnak; újraindítás után ismét meg kell adni őket.
+			A számlaazonosító üresen hagyható: ekkor az első elérhető számlát használja az alkalmazás.</p>
+		<p th:if="${configured}">Van beállított token. Új adatok megadásával lecserélhető.</p>
+		<p th:if="${message}" th:text="${message}"></p>
+		<p th:if="${error}" th:text="${error}"></p>
+		<form method="post" th:action="@{/oanda-beallitasok}" autocomplete="off">
+			<input type="hidden" name="csrf" th:value="${csrf}" />
+			<label for="token">Oanda v20 API-token</label>
+			<input type="password" id="token" name="token" required maxlength="512" autocomplete="off" />
+			<label for="accountId">Számlaazonosító (opcionális)</label>
+			<input type="text" id="accountId" name="accountId" maxlength="128" autocomplete="off" />
+			<ul class="actions"><li><input type="submit" value="Beállítás" /></li></ul>
+		</form>
+		<p><a th:href="@{/forex-account}">Tovább a számlaadatokhoz</a></p>
+	</div>
+</section>
+<section th:replace="~{fragments/layout :: footer}"></section>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
+</html>

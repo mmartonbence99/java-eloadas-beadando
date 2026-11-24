@@ -11,32 +11,60 @@ import java.util.Map;
 @Service
 public class OandaService {
 
-    private final RestClient client;
-    private final String token;
-    private volatile String accountId;
+    private final String url;
+    private volatile Credentials credentials;
+
+    private static class Credentials {
+        private final RestClient client;
+        private final String token;
+        private volatile String accountId;
+
+        private Credentials(String url, String token, String accountId) {
+            this.token = token;
+            this.accountId = accountId;
+            this.client = RestClient.builder()
+                    .baseUrl(url)
+                    .defaultHeader("Authorization", "Bearer " + token)
+                    .build();
+        }
+    }
 
     public OandaService(@Value("${oanda.url}") String url,
                         @Value("${oanda.token}") String token,
                         @Value("${oanda.account-id:}") String accountId) {
-        this.accountId = accountId;
-        this.token = token;
-        this.client = RestClient.builder()
-                .baseUrl(url)
-                .defaultHeader("Authorization", "Bearer " + token)
-                .build();
+        this.url = url;
+        this.credentials = new Credentials(url, token, accountId);
     }
 
-    private RestClient client() {
-        if (token.isBlank()) {
-            throw new IllegalStateException("Az OANDA_TOKEN és az OANDA_ACCOUNT_ID környezeti változókat be kell állítani.");
+    public void configure(String token, String accountId) {
+        String cleanedToken = token.trim();
+        String cleanedAccountId = accountId.trim();
+        if (cleanedToken.isEmpty() || cleanedToken.length() > 512
+                || !cleanedToken.matches("[A-Za-z0-9._~-]+")) {
+            throw new IllegalArgumentException("Adjon meg érvényes Oanda v20 API-tokent.");
         }
-        return client;
+        if (cleanedAccountId.length() > 128 || !cleanedAccountId.matches("[A-Za-z0-9_-]*")) {
+            throw new IllegalArgumentException("Adjon meg érvényes számlaazonosítót.");
+        }
+        credentials = new Credentials(url, cleanedToken, cleanedAccountId);
+    }
+
+    public boolean isConfigured() {
+        return !credentials.token.isBlank();
+    }
+
+    private Credentials credentials() {
+        Credentials current = credentials;
+        if (current.token.isBlank()) {
+            throw new IllegalStateException("Adja meg az Oanda API-tokent az Oanda-beállítások oldalon.");
+        }
+        return current;
     }
 
     // Ha nincs megadva számlaazonosító, a tokenhez tartozó számlát az OANDA-tól kérdezzük le (GET /v3/accounts).
-    private String accountId() {
-        if (accountId == null || accountId.isBlank()) {
-            Map<String, Object> response = client().get()
+    private String accountId(Credentials current) {
+        if (current.accountId == null || current.accountId.isBlank()) {
+            Map<String, Object> response = current.client.get()
                     .uri("/v3/accounts")
                     .retrieve()
                     .body(new ParameterizedTypeReference<>() {
@@ -46,14 +74,15 @@ public class OandaService {
             if (accounts == null || accounts.isEmpty()) {
                 throw new IllegalStateException("A tokenhez nem tartozik OANDA számla.");
             }
-            accountId = (String) accounts.get(0).get("id");
+            current.accountId = (String) accounts.get(0).get("id");
         }
-        return accountId;
+        return current.accountId;
     }
 
     public Map<String, Object> getAccount() {
-        Map<String, Object> response = client().get()
-                .uri("/v3/accounts/{id}/summary", accountId())
+        Credentials current = credentials();
+        Map<String, Object> response = current.client.get()
+                .uri("/v3/accounts/{id}/summary", accountId(current))
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
@@ -63,8 +92,9 @@ public class OandaService {
     }
 
     public List<String> getInstruments() {
-        Map<String, Object> response = client().get()
-                .uri("/v3/accounts/{id}/instruments", accountId())
+        Credentials current = credentials();
+        Map<String, Object> response = current.client.get()
+                .uri("/v3/accounts/{id}/instruments", accountId(current))
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
@@ -74,8 +104,9 @@ public class OandaService {
     }
 
     public Map<String, Object> getPrice(String instrument) {
-        Map<String, Object> response = client().get()
-                .uri("/v3/accounts/{id}/pricing?instruments={i}", accountId(), instrument)
+        Credentials current = credentials();
+        Map<String, Object> response = current.client.get()
+                .uri("/v3/accounts/{id}/pricing?instruments={i}", accountId(current), instrument)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
@@ -85,7 +116,8 @@ public class OandaService {
     }
 
     public List<Map<String, Object>> getCandles(String instrument, String granularity) {
-        Map<String, Object> response = client().get()
+        Credentials current = credentials();
+        Map<String, Object> response = current.client.get()
                 .uri("/v3/instruments/{i}/candles?count=10&granularity={g}&price=M", instrument, granularity)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
@@ -96,14 +128,15 @@ public class OandaService {
     }
 
     public Map<String, Object> openTrade(String instrument, int units) {
+        Credentials current = credentials();
         Map<String, Object> order = Map.of("order", Map.of(
                 "type", "MARKET",
                 "instrument", instrument,
                 "units", String.valueOf(units),
                 "timeInForce", "FOK",
                 "positionFill", "DEFAULT"));
-        return client().post()
-                .uri("/v3/accounts/{id}/orders", accountId())
+        return current.client.post()
+                .uri("/v3/accounts/{id}/orders", accountId(current))
                 .body(order)
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
@@ -111,8 +144,9 @@ public class OandaService {
     }
 
     public List<Map<String, Object>> getOpenTrades() {
-        Map<String, Object> response = client().get()
-                .uri("/v3/accounts/{id}/openTrades", accountId())
+        Credentials current = credentials();
+        Map<String, Object> response = current.client.get()
+                .uri("/v3/accounts/{id}/openTrades", accountId(current))
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
                 });
@@ -122,8 +156,9 @@ public class OandaService {
     }
 
     public Map<String, Object> closeTrade(String tradeId) {
-        return client().put()
-                .uri("/v3/accounts/{id}/trades/{t}/close", accountId(), tradeId)
+        Credentials current = credentials();
+        return current.client.put()
+                .uri("/v3/accounts/{id}/trades/{t}/close", accountId(current), tradeId)
                 .body(Map.of("units", "ALL"))
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {
